@@ -1,0 +1,9 @@
+services:
+  web:
+    build: .
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app
+    # To load demo data, run once:
+    #   docker compose run web python manage.py seed_data

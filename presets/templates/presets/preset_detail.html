@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ preset.song_name }} · ToneVault{% endblock %}
+
+{% block content %}
+<div class="mb-3">
+    <a href="{% url 'preset_list' %}" class="text-decoration-none">&larr; Back to all presets</a>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-body">
+        <h1 class="h4">{{ preset.song_name }}</h1>
+        <h2 class="h6 text-muted">{{ preset.band.name }}</h2>
+        <p><span class="badge bg-secondary">{{ preset.amp_model }}</span></p>
+
+        <table class="table table-sm w-auto">
+            <tbody>
+                <tr><th class="pe-4">Gain</th><td>{{ preset.gain }}</td></tr>
+                <tr><th class="pe-4">Bass</th><td>{{ preset.bass }}</td></tr>
+                <tr><th class="pe-4">Mid</th><td>{{ preset.mid }}</td></tr>
+                <tr><th class="pe-4">Treble</th><td>{{ preset.treble }}</td></tr>
+                <tr><th class="pe-4">Reverb</th><td>{{ preset.reverb }}</td></tr>
+            </tbody>
+        </table>
+
+        {% if preset.audio_demo %}
+            <div class="mb-3">
+                <p class="mb-1 fw-bold">Audio demo</p>
+                <audio controls src="{{ preset.audio_demo.url }}"></audio>
+            </div>
+        {% endif %}
+
+        <a href="{% url 'preset_download' preset.pk %}" class="btn btn-success">
+            ⬇ Download settings (.txt)
+        </a>
+    </div>
+    <div class="card-footer text-muted small">
+        by {{ preset.author.username }} · {{ preset.created_at|date:"Y-m-d H:i" }}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Presets · ToneVault{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3 m-0">Guitar presets</h1>
+    <div>
+        <label for="band-filter" class="form-label me-2 m-0">Filter by band:</label>
+        <select id="band-filter" class="form-select d-inline-block w-auto">
+            <option value="">All bands</option>
+            {% for band in bands %}
+                <option value="{{ band.id }}" {% if selected_band_id == band.id|stringformat:'s' %}selected{% endif %}>
+                    {{ band.name }}
+                </option>
+            {% endfor %}
+        </select>
+    </div>
+</div>
+
+<div id="preset-list" class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-3">
+    {% for preset in presets %}
+        <div class="col">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title mb-1">{{ preset.song_name }}</h5>
+                    <h6 class="card-subtitle text-muted mb-2">{{ preset.band.name }}</h6>
+                    <p class="card-text mb-2"><span class="badge bg-secondary">{{ preset.amp_model }}</span></p>
+                    <p class="card-text small text-muted mb-3">
+                        G {{ preset.gain }} · B {{ preset.bass }} · M {{ preset.mid }}
+                        · T {{ preset.treble }} · Rev {{ preset.reverb }}
+                    </p>
+                    <a href="{{ preset.get_absolute_url }}" class="btn btn-sm btn-primary">View</a>
+                </div>
+                <div class="card-footer text-muted small">by {{ preset.author.username }}</div>
+            </div>
+        </div>
+    {% empty %}
+        <p class="text-muted" id="empty-msg">No presets yet.</p>
+    {% endfor %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+    <script>window.PRESETS_JSON_URL = "{% url 'presets_json' %}";</script>
+    <script src="{% static 'presets/filter.js' %}"></script>
+{% endblock %}
