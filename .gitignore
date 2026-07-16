@@ -1,5 +1,19 @@
+# Python
 __pycache__/
 *.pyc
+.venv/
+
+# Django
 db.sqlite3
+*.sqlite3
 media/
+staticfiles/
+
+# environment
+.env
+
+# IDE
 .idea/
+
+# misc
+.swarm/

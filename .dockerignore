@@ -1,6 +1,25 @@
+# Python
 __pycache__/
 *.pyc
+.venv/
+
+# Django
+db.sqlite3
+*.sqlite3
+media/
+staticfiles/
+
+# environment
+.env
+
+# VCS / IDE
 .git/
 .idea/
-media/
-db.sqlite3
+.claude/
+.swarm/
+
+# docs / docker
+README.md
+Dockerfile
+docker-compose.yml
+.dockerignore

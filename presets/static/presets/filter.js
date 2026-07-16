@@ -1,4 +1,5 @@
 var select = document.getElementById("band-filter");
+var searchInput = document.getElementById("search-input");
 var listEl = document.getElementById("preset-list");
 
 function cardHtml(p) {
@@ -35,6 +36,9 @@ function render(presets) {
 
 function loadPresets(bandId) {
     var url = window.PRESETS_JSON_URL + "?band=" + encodeURIComponent(bandId);
+    if (searchInput && searchInput.value) {
+        url += "&q=" + encodeURIComponent(searchInput.value);
+    }
     fetch(url, { headers: { "X-Requested-With": "XMLHttpRequest" } })
         .then(function (resp) {
             return resp.json();

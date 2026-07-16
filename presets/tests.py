@@ -99,3 +99,65 @@ class PresetTests(TestCase):
         response = self.client.get(reverse('preset_delete', args=[self.preset.pk]))
         self.assertEqual(response.status_code, 302)
         self.assertIn('/login/', response['Location'])
+
+    # helper for search tests: a second preset in another band
+    def _create_second_preset(self):
+        band = Band.objects.create(name='Nirvana')
+        return Preset.objects.create(
+            author=self.user, band=band,
+            song_name='Smells Like Teen Spirit', amp_model='Fender Twin',
+            gain=5, bass=5, mid=5, treble=5, reverb=4,
+        )
+
+    # 9. search by song name
+    def test_search_by_song_name(self):
+        self._create_second_preset()
+        response = self.client.get(reverse('preset_list'), {'q': 'sandman'})
+        self.assertEqual(response.status_code, 200)
+        presets = list(response.context['presets'])
+        self.assertEqual(len(presets), 1)
+        self.assertEqual(presets[0].song_name, 'Enter Sandman')
+
+    # 10. search by amp model
+    def test_search_by_amp_model(self):
+        self._create_second_preset()
+        response = self.client.get(reverse('preset_list'), {'q': 'fender'})
+        presets = list(response.context['presets'])
+        self.assertEqual(len(presets), 1)
+        self.assertEqual(presets[0].song_name, 'Smells Like Teen Spirit')
+
+    # 11. search by band name
+    def test_search_by_band_name(self):
+        self._create_second_preset()
+        response = self.client.get(reverse('preset_list'), {'q': 'nirvana'})
+        presets = list(response.context['presets'])
+        self.assertEqual(len(presets), 1)
+        self.assertEqual(presets[0].song_name, 'Smells Like Teen Spirit')
+
+    # 12. search and band filter together
+    def test_search_with_band_filter(self):
+        self._create_second_preset()
+        # another Metallica preset that should not match the query
+        Preset.objects.create(
+            author=self.user, band=self.band,
+            song_name='One', amp_model='JCM800',
+            gain=6, bass=5, mid=4, treble=6, reverb=2,
+        )
+        response = self.client.get(reverse('preset_list'), {'band': self.band.id, 'q': 'sandman'})
+        presets = list(response.context['presets'])
+        self.assertEqual(len(presets), 1)
+        self.assertEqual(presets[0].song_name, 'Enter Sandman')
+
+        # same query with no band matches only the one preset too,
+        # but band filter alone would return two Metallica presets
+        response = self.client.get(reverse('preset_list'), {'band': self.band.id, 'q': ''})
+        self.assertEqual(len(response.context['presets']), 2)
+
+    # 13. json endpoint with q
+    def test_json_endpoint_with_q(self):
+        self._create_second_preset()
+        response = self.client.get(reverse('presets_json'), {'q': 'teen spirit'})
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertEqual(len(data['presets']), 1)
+        self.assertEqual(data['presets'][0]['song_name'], 'Smells Like Teen Spirit')

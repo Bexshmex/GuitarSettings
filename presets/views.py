@@ -1,6 +1,7 @@
 from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
+from django.db.models import Q
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 
@@ -20,14 +21,24 @@ def preset_list(request):
     else:
         band_id = request.session.get('last_band_id')
 
+    q = request.GET.get('q', '').strip()
+
     presets = Preset.objects.all()
     if band_id:
         presets = presets.filter(band_id=band_id)
+    if q:
+        presets = presets.filter(
+            Q(song_name__icontains=q) |
+            Q(amp_model__icontains=q) |
+            Q(band__name__icontains=q) |
+            Q(author__username__icontains=q)
+        )
 
     context = {
         'presets': presets,
         'bands': Band.objects.all(),
         'selected_band_id': str(band_id) if band_id else '',
+        'search_query': q,
     }
     return render(request, 'presets/preset_list.html', context)
 
@@ -40,9 +51,18 @@ def presets_json(request):
     else:
         request.session.pop('last_band_id', None)
 
+    q = request.GET.get('q', '').strip()
+
     presets = Preset.objects.all()
     if band_id:
         presets = presets.filter(band_id=band_id)
+    if q:
+        presets = presets.filter(
+            Q(song_name__icontains=q) |
+            Q(amp_model__icontains=q) |
+            Q(band__name__icontains=q) |
+            Q(author__username__icontains=q)
+        )
 
     data = []
     for p in presets:
