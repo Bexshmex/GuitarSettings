@@ -9,10 +9,22 @@ from .forms import PresetForm, SignUpForm
 from .models import Band, Preset
 
 
+def search_presets(presets, q):
+    # match song, amp model, band name or author username
+    if q:
+        presets = presets.filter(
+            Q(song_name__icontains=q) |
+            Q(amp_model__icontains=q) |
+            Q(band__name__icontains=q) |
+            Q(author__username__icontains=q)
+        )
+    return presets
+
+
 def preset_list(request):
-    # list presets
     band_id = request.GET.get('band')
 
+    # remember the last chosen band in the session
     if band_id is not None:
         if band_id:
             request.session['last_band_id'] = band_id
@@ -26,13 +38,7 @@ def preset_list(request):
     presets = Preset.objects.all()
     if band_id:
         presets = presets.filter(band_id=band_id)
-    if q:
-        presets = presets.filter(
-            Q(song_name__icontains=q) |
-            Q(amp_model__icontains=q) |
-            Q(band__name__icontains=q) |
-            Q(author__username__icontains=q)
-        )
+    presets = search_presets(presets, q)
 
     context = {
         'presets': presets,
@@ -44,7 +50,6 @@ def preset_list(request):
 
 
 def presets_json(request):
-    # presets as json
     band_id = request.GET.get('band', '')
     if band_id:
         request.session['last_band_id'] = band_id
@@ -56,13 +61,7 @@ def presets_json(request):
     presets = Preset.objects.all()
     if band_id:
         presets = presets.filter(band_id=band_id)
-    if q:
-        presets = presets.filter(
-            Q(song_name__icontains=q) |
-            Q(amp_model__icontains=q) |
-            Q(band__name__icontains=q) |
-            Q(author__username__icontains=q)
-        )
+    presets = search_presets(presets, q)
 
     data = []
     for p in presets:
@@ -83,14 +82,12 @@ def presets_json(request):
 
 
 def preset_detail(request, pk):
-    # one preset
     preset = get_object_or_404(Preset, pk=pk)
     return render(request, 'presets/preset_detail.html', {'preset': preset})
 
 
 @login_required
 def preset_create(request):
-    # new preset
     if request.method == 'POST':
         form = PresetForm(request.POST, request.FILES)
         if form.is_valid():
@@ -105,7 +102,6 @@ def preset_create(request):
 
 @login_required
 def preset_edit(request, pk):
-    # edit preset
     preset = get_object_or_404(Preset, pk=pk)
     if preset.author != request.user and not request.user.is_superuser:
         raise PermissionDenied
@@ -121,7 +117,6 @@ def preset_edit(request, pk):
 
 @login_required
 def preset_delete(request, pk):
-    # delete preset
     preset = get_object_or_404(Preset, pk=pk)
     if preset.author != request.user and not request.user.is_superuser:
         raise PermissionDenied
@@ -132,7 +127,6 @@ def preset_delete(request, pk):
 
 
 def preset_download(request, pk):
-    # download as txt
     preset = get_object_or_404(Preset, pk=pk)
     content = 'ToneVault preset: ' + preset.song_name + '\n'
     content += 'Band: ' + preset.band.name + '\n'
@@ -153,7 +147,6 @@ def preset_download(request, pk):
 
 
 def register(request):
-    # sign up
     if request.method == 'POST':
         form = SignUpForm(request.POST)
         if form.is_valid():

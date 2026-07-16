@@ -17,7 +17,6 @@ class PresetTests(TestCase):
             gain=8, bass=6, mid=5, treble=7, reverb=3,
         )
 
-    # 1. upload with audio demo
     def test_upload_audio_demo(self):
         self.client.login(username='alice', password='pw12345!')
         audio = SimpleUploadedFile('demo.mp3', b'fake audio', content_type='audio/mpeg')
@@ -33,7 +32,6 @@ class PresetTests(TestCase):
         self.assertEqual(created.author, self.user)
         self.assertTrue(created.audio_demo)
 
-    # 2. json endpoint
     def test_json_endpoint(self):
         response = self.client.get(reverse('presets_json'))
         self.assertEqual(response.status_code, 200)
@@ -41,13 +39,11 @@ class PresetTests(TestCase):
         self.assertEqual(len(data['presets']), 1)
         self.assertEqual(data['presets'][0]['song_name'], 'Enter Sandman')
 
-    # 3. anonymous redirected to login
     def test_anonymous_redirected(self):
         response = self.client.get(reverse('preset_create'))
         self.assertEqual(response.status_code, 302)
         self.assertIn('/login/', response['Location'])
 
-    # 4. author can edit
     def test_author_can_edit(self):
         self.client.login(username='alice', password='pw12345!')
         response = self.client.post(reverse('preset_edit', args=[self.preset.pk]), {
@@ -61,14 +57,12 @@ class PresetTests(TestCase):
         self.assertEqual(self.preset.song_name, 'Enter Sandman (Remastered)')
         self.assertEqual(self.preset.gain, 7)
 
-    # 5. author can delete
     def test_author_can_delete(self):
         self.client.login(username='alice', password='pw12345!')
         response = self.client.post(reverse('preset_delete', args=[self.preset.pk]))
         self.assertRedirects(response, reverse('preset_list'))
         self.assertFalse(Preset.objects.filter(pk=self.preset.pk).exists())
 
-    # 6. other user cannot edit
     def test_other_user_cannot_edit(self):
         User.objects.create_user(username='bob', password='pw12345!')
         self.client.login(username='bob', password='pw12345!')
@@ -82,7 +76,6 @@ class PresetTests(TestCase):
         self.preset.refresh_from_db()
         self.assertEqual(self.preset.song_name, 'Enter Sandman')
 
-    # 7. other user cannot delete
     def test_other_user_cannot_delete(self):
         User.objects.create_user(username='bob', password='pw12345!')
         self.client.login(username='bob', password='pw12345!')
@@ -90,7 +83,6 @@ class PresetTests(TestCase):
         self.assertEqual(response.status_code, 403)
         self.assertTrue(Preset.objects.filter(pk=self.preset.pk).exists())
 
-    # 8. anonymous redirected to login for edit/delete
     def test_anonymous_redirected_edit_delete(self):
         response = self.client.get(reverse('preset_edit', args=[self.preset.pk]))
         self.assertEqual(response.status_code, 302)
@@ -100,8 +92,8 @@ class PresetTests(TestCase):
         self.assertEqual(response.status_code, 302)
         self.assertIn('/login/', response['Location'])
 
-    # helper for search tests: a second preset in another band
     def _create_second_preset(self):
+        # a preset in another band, used by the search tests
         band = Band.objects.create(name='Nirvana')
         return Preset.objects.create(
             author=self.user, band=band,
@@ -109,7 +101,6 @@ class PresetTests(TestCase):
             gain=5, bass=5, mid=5, treble=5, reverb=4,
         )
 
-    # 9. search by song name
     def test_search_by_song_name(self):
         self._create_second_preset()
         response = self.client.get(reverse('preset_list'), {'q': 'sandman'})
@@ -118,7 +109,6 @@ class PresetTests(TestCase):
         self.assertEqual(len(presets), 1)
         self.assertEqual(presets[0].song_name, 'Enter Sandman')
 
-    # 10. search by amp model
     def test_search_by_amp_model(self):
         self._create_second_preset()
         response = self.client.get(reverse('preset_list'), {'q': 'fender'})
@@ -126,7 +116,6 @@ class PresetTests(TestCase):
         self.assertEqual(len(presets), 1)
         self.assertEqual(presets[0].song_name, 'Smells Like Teen Spirit')
 
-    # 11. search by band name
     def test_search_by_band_name(self):
         self._create_second_preset()
         response = self.client.get(reverse('preset_list'), {'q': 'nirvana'})
@@ -134,7 +123,6 @@ class PresetTests(TestCase):
         self.assertEqual(len(presets), 1)
         self.assertEqual(presets[0].song_name, 'Smells Like Teen Spirit')
 
-    # 12. search and band filter together
     def test_search_with_band_filter(self):
         self._create_second_preset()
         # another Metallica preset that should not match the query
@@ -148,12 +136,10 @@ class PresetTests(TestCase):
         self.assertEqual(len(presets), 1)
         self.assertEqual(presets[0].song_name, 'Enter Sandman')
 
-        # same query with no band matches only the one preset too,
-        # but band filter alone would return two Metallica presets
+        # band filter alone returns both Metallica presets
         response = self.client.get(reverse('preset_list'), {'band': self.band.id, 'q': ''})
         self.assertEqual(len(response.context['presets']), 2)
 
-    # 13. json endpoint with q
     def test_json_endpoint_with_q(self):
         self._create_second_preset()
         response = self.client.get(reverse('presets_json'), {'q': 'teen spirit'})

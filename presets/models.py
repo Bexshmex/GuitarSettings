@@ -5,7 +5,6 @@ from django.urls import reverse
 
 
 class Band(models.Model):
-    # a band
     name = models.CharField(max_length=120, unique=True)
 
     def __str__(self):
@@ -13,7 +12,6 @@ class Band(models.Model):
 
 
 class Preset(models.Model):
-    # an amp preset
     author = models.ForeignKey(User, on_delete=models.CASCADE)
     band = models.ForeignKey(Band, on_delete=models.CASCADE)
     song_name = models.CharField(max_length=200)

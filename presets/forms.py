@@ -6,7 +6,6 @@ from .models import Preset
 
 
 class SignUpForm(UserCreationForm):
-    # sign up form
 
     class Meta(UserCreationForm.Meta):
         model = User
@@ -14,7 +13,6 @@ class SignUpForm(UserCreationForm):
 
 
 class PresetForm(forms.ModelForm):
-    # preset form
 
     class Meta:
         model = Preset

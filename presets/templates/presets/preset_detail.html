@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 
-{% block title %}{{ preset.song_name }} · ToneVault{% endblock %}
+{% block title %}{{ preset.song_name }} &middot; ToneVault{% endblock %}
 
 {% block content %}
 <div class="mb-3">
@@ -31,7 +31,7 @@
         {% endif %}
 
         <a href="{% url 'preset_download' preset.pk %}" class="btn btn-success">
-            ⬇ Download settings (.txt)
+            Download settings (.txt)
         </a>
 
         {% if user == preset.author or user.is_superuser %}
@@ -40,7 +40,7 @@
         {% endif %}
     </div>
     <div class="card-footer text-muted small">
-        by {{ preset.author.username }} · {{ preset.created_at|date:"Y-m-d H:i" }}
+        by {{ preset.author.username }} &middot; {{ preset.created_at|date:"Y-m-d H:i" }}
     </div>
 </div>
 {% endblock %}

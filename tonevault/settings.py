@@ -7,7 +7,7 @@ import dj_database_url
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# insecure default is for local development only — set DJANGO_SECRET_KEY in production
+# insecure default is for local development only, set DJANGO_SECRET_KEY in production
 SECRET_KEY = os.environ.get(
     'DJANGO_SECRET_KEY',
     'django-insecure-siszc^e-a^(p6vkh%k-h@x_4l4c12%40u-4j%c694*k9-8)tt%',
@@ -121,8 +121,8 @@ LOGOUT_REDIRECT_URL = 'preset_list'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# opt-in HTTPS hardening — enable when the site is served over HTTPS
-# (kept off by default so plain http://localhost:8000 keeps working)
+# extra security settings, only when the site runs behind HTTPS
+# (off by default so plain http://localhost:8000 keeps working)
 if os.environ.get('DJANGO_SECURE_SSL', '').lower() in ('1', 'true', 'yes'):
     SECURE_SSL_REDIRECT = True
     SESSION_COOKIE_SECURE = True
