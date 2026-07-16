@@ -1,11 +1,11 @@
 {% extends 'base.html' %}
 
-{% block title %}New preset · ToneVault{% endblock %}
+{% block title %}{% if form.instance.pk %}Edit preset{% else %}New preset{% endif %} · ToneVault{% endblock %}
 
 {% block content %}
 <div class="row justify-content-center">
     <div class="col-md-8 col-lg-6">
-        <h1 class="h4 mb-4">Create a preset</h1>
+        <h1 class="h4 mb-4">{% if form.instance.pk %}Edit preset{% else %}Create a preset{% endif %}</h1>
 
         <form method="post" enctype="multipart/form-data" novalidate>
             {% csrf_token %}

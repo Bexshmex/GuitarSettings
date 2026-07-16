@@ -46,3 +46,56 @@ class PresetTests(TestCase):
         response = self.client.get(reverse('preset_create'))
         self.assertEqual(response.status_code, 302)
         self.assertIn('/login/', response['Location'])
+
+    # 4. author can edit
+    def test_author_can_edit(self):
+        self.client.login(username='alice', password='pw12345!')
+        response = self.client.post(reverse('preset_edit', args=[self.preset.pk]), {
+            'band': self.band.id,
+            'song_name': 'Enter Sandman (Remastered)',
+            'amp_model': 'Mesa Boogie',
+            'gain': 7, 'bass': 6, 'mid': 5, 'treble': 7, 'reverb': 3,
+        })
+        self.assertEqual(response.status_code, 302)
+        self.preset.refresh_from_db()
+        self.assertEqual(self.preset.song_name, 'Enter Sandman (Remastered)')
+        self.assertEqual(self.preset.gain, 7)
+
+    # 5. author can delete
+    def test_author_can_delete(self):
+        self.client.login(username='alice', password='pw12345!')
+        response = self.client.post(reverse('preset_delete', args=[self.preset.pk]))
+        self.assertRedirects(response, reverse('preset_list'))
+        self.assertFalse(Preset.objects.filter(pk=self.preset.pk).exists())
+
+    # 6. other user cannot edit
+    def test_other_user_cannot_edit(self):
+        User.objects.create_user(username='bob', password='pw12345!')
+        self.client.login(username='bob', password='pw12345!')
+        response = self.client.post(reverse('preset_edit', args=[self.preset.pk]), {
+            'band': self.band.id,
+            'song_name': 'Hacked',
+            'amp_model': 'Hacked',
+            'gain': 0, 'bass': 0, 'mid': 0, 'treble': 0, 'reverb': 0,
+        })
+        self.assertEqual(response.status_code, 403)
+        self.preset.refresh_from_db()
+        self.assertEqual(self.preset.song_name, 'Enter Sandman')
+
+    # 7. other user cannot delete
+    def test_other_user_cannot_delete(self):
+        User.objects.create_user(username='bob', password='pw12345!')
+        self.client.login(username='bob', password='pw12345!')
+        response = self.client.post(reverse('preset_delete', args=[self.preset.pk]))
+        self.assertEqual(response.status_code, 403)
+        self.assertTrue(Preset.objects.filter(pk=self.preset.pk).exists())
+
+    # 8. anonymous redirected to login for edit/delete
+    def test_anonymous_redirected_edit_delete(self):
+        response = self.client.get(reverse('preset_edit', args=[self.preset.pk]))
+        self.assertEqual(response.status_code, 302)
+        self.assertIn('/login/', response['Location'])
+
+        response = self.client.get(reverse('preset_delete', args=[self.preset.pk]))
+        self.assertEqual(response.status_code, 302)
+        self.assertIn('/login/', response['Location'])

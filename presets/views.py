@@ -1,5 +1,6 @@
 from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
+from django.core.exceptions import PermissionDenied
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 
@@ -80,6 +81,34 @@ def preset_create(request):
     else:
         form = PresetForm()
     return render(request, 'presets/preset_form.html', {'form': form})
+
+
+@login_required
+def preset_edit(request, pk):
+    # edit preset
+    preset = get_object_or_404(Preset, pk=pk)
+    if preset.author != request.user and not request.user.is_superuser:
+        raise PermissionDenied
+    if request.method == 'POST':
+        form = PresetForm(request.POST, request.FILES, instance=preset)
+        if form.is_valid():
+            form.save()
+            return redirect(preset)
+    else:
+        form = PresetForm(instance=preset)
+    return render(request, 'presets/preset_form.html', {'form': form})
+
+
+@login_required
+def preset_delete(request, pk):
+    # delete preset
+    preset = get_object_or_404(Preset, pk=pk)
+    if preset.author != request.user and not request.user.is_superuser:
+        raise PermissionDenied
+    if request.method == 'POST':
+        preset.delete()
+        return redirect('preset_list')
+    return render(request, 'presets/preset_confirm_delete.html', {'preset': preset})
 
 
 def preset_download(request, pk):

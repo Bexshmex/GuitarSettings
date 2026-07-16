@@ -33,6 +33,11 @@
         <a href="{% url 'preset_download' preset.pk %}" class="btn btn-success">
             ⬇ Download settings (.txt)
         </a>
+
+        {% if user == preset.author or user.is_superuser %}
+            <a href="{% url 'preset_edit' preset.pk %}" class="btn btn-outline-primary">Edit</a>
+            <a href="{% url 'preset_delete' preset.pk %}" class="btn btn-outline-danger">Delete</a>
+        {% endif %}
     </div>
     <div class="card-footer text-muted small">
         by {{ preset.author.username }} · {{ preset.created_at|date:"Y-m-d H:i" }}
